@@ -1,0 +1,58 @@
+A MCS-51 LIBRARIES OF STC
+
+Apply only to STC15xx and STC8xx.
+Not recommended apply STC15Fxx.
+
+##If you cannot see the Chinese part correctly, please use GB2321 in the Settings.
+
+##这是一个兼容于STC15系列和STC8系列的库文件例程，为确保一些特殊的函数可以正确运行，请采用24M系统时钟。
+##库文件包含3部分，主函数代码，配置片内资源的HDL库以及配置外设的DRIVER库。HDL库可以根据定义直接使用，DRIVER库需要根据实际需求进行文件的添加以及头文件的包含，配置。
+
+###core 
+
+##core.c
+#这个文件包含主程序main(),可不做修改。
+
+##interrupt.c
+#这个文件包含中断服务以及中断任务栈。为确保多个用户应用程序调用相同的中断服务程序时不发生冲突，库文件添加了中断服务栈。用户程序在使用某中断时，只需在任务栈中添加任务而不需要处理其他用户程序的调用问题。
+#注意！中断都是某个硬件特有的，因此当一个硬件出现多个中断事件时只会在同一个中断入口中产生，例如串口的中断，无论是接收中断还是发送中断都在同一个中断中产生。用户中断任务需要去判断相应的中断标志位做对应的操作。
+
+//函数用途：添加中断任务。
+//参数：中断结构体指针，任务ID，回调函数名
+@extern int setInterruptTask(interruptTask *intTask,unsigned char taskID,void(*hander)());
+
+//函数用途：设置运行的任务ID(单一任务或所有任务)
+//参数：中断结构体指针，任务ID
+@extern int setInterruptRunTask(interruptTask *intTask,unsigned char taskID);
+
+#大部分HDL库中的配置函数都会对中断任务栈进行初始化，因此一般情况下用户不需要直接调用以上函数。
+
+##bitctrl.c
+#这个文件包含用于对不可位寻址特殊功能寄存器位修改的函数。
+
+###USER_APP
+
+##main.c
+#这个文件包含配置函数和循环函数，是加入用户应用程序的地方。
+
+//函数用途：运行配置函数或其他只需要在单片机上电或唤醒时运行一次的函数。
+@void setup();
+
+//函数用途：运行需要循环的用户程序
+@void loop();
+
+###HDL
+
+##HDL_DELAY.c
+#包含软件延时程序。
+
+//函数用途：进行毫秒级延时
+//参数：延时毫秒
+@void delay(unsigned int ms);
+
+//函数用途：进行微秒级延时
+//参数：延时微秒*10
+@void delay_10us(unsigned int us);
+#低于10微秒的延时在C语言中编译误差较大，隐藏以10微秒为单位进行微秒级延时，参数1即可延时10us。
+
+##HDL_EXTI.c
